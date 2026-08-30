@@ -5,7 +5,7 @@ import { Mail, Linkedin, MapPin, Send, Loader2 } from "lucide-react";
 import { PROFILE } from "@/data/profile";
 
 export default function ContactSection() {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [feedbackMsg, setFeedbackMsg] = useState("");
 
@@ -26,7 +26,7 @@ export default function ContactSection() {
       if (res.ok) {
         setStatus("success");
         setFeedbackMsg(result.message || "Thank you! Your message has been sent.");
-        setFormData({ name: "", email: "", message: "" });
+        setFormData({ name: "", email: "", phone: "", message: "" });
         setTimeout(() => {
           setStatus("idle");
           setFeedbackMsg("");
@@ -117,7 +117,7 @@ export default function ContactSection() {
             <div className="space-y-1">
               <input
                 type="text"
-                placeholder="Name"
+                placeholder="Your Name *"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -127,7 +127,7 @@ export default function ContactSection() {
             <div className="space-y-1">
               <input
                 type="email"
-                placeholder="Email"
+                placeholder="Email Address *"
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -135,8 +135,17 @@ export default function ContactSection() {
               />
             </div>
             <div className="space-y-1">
+              <input
+                type="tel"
+                placeholder="Mobile / WhatsApp Number (e.g. +91 9876543210)"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-4 py-3 bg-ds-surface border border-ds-border text-ds-text1 placeholder-ds-text2/50 text-sm focus:outline-none focus:border-ds-accent focus:ring-4 focus:ring-ds-accent/20 transition-all rounded-md shadow-sm"
+              />
+            </div>
+            <div className="space-y-1">
               <textarea
-                placeholder="Message"
+                placeholder="Your Message *"
                 required
                 rows={4}
                 value={formData.message}

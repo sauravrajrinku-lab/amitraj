@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
-    const { name, email, message } = await request.json();
+    const { name, email, phone, message } = await request.json();
 
     if (!name || !email || !message) {
       return NextResponse.json(
@@ -32,6 +32,7 @@ export async function POST(request: Request) {
         {
           name: name.trim(),
           email: email.trim().toLowerCase(),
+          phone: phone ? phone.trim() : null,
           message: message.trim(),
           created_at: new Date().toISOString(),
         },
