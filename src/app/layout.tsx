@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
 };
 
-import BackgroundAurora from "@/components/BackgroundAurora";
+import TechGridBackground from "@/components/TechGridBackground";
 
 export default function RootLayout({
   children,
@@ -50,7 +50,7 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} bg-[#0D0D0D] text-ds-text1 antialiased selection:bg-ds-accent/30 selection:text-ds-accent relative`}
       >
-        <BackgroundAurora />
+        <TechGridBackground />
         <div className="relative z-0">
           {children}
         </div>
