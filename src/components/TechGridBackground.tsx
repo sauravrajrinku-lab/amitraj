@@ -17,10 +17,14 @@ export default function TechGridBackground() {
     canvas.width = width;
     canvas.height = height;
 
-    // Responsive particle count (less particles on mobile)
-    const particleCount = Math.floor((width * height) / 12000);
+    // Configuration
+    const connectionDistance = 130;
+    const particleCount = Math.floor((width * height) / 10000);
+    const maxSparks = 15; // Limit sparks for performance and subtleness
+
     const particles: Particle[] = [];
-    const mouse = { x: width / 2, y: height / 2, radius: 150 };
+    const sparks: Spark[] = [];
+    const mouse = { x: width / 2, y: height / 2, radius: 180 };
 
     class Particle {
       x: number;
@@ -32,9 +36,9 @@ export default function TechGridBackground() {
       constructor() {
         this.x = Math.random() * width;
         this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.6; // Speed
-        this.vy = (Math.random() - 0.5) * 0.6;
-        this.size = Math.random() * 2 + 0.5; // Size between 0.5 and 2.5
+        this.vx = (Math.random() - 0.5) * 0.4; // Very slow and smooth
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.size = Math.random() * 1.5 + 0.5;
       }
 
       update() {
@@ -50,7 +54,46 @@ export default function TechGridBackground() {
         if (!ctx) return;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(6, 182, 212, 0.4)"; // Cyan color for dots
+        // Base opacity 15-20% for nodes
+        ctx.fillStyle = "rgba(6, 182, 212, 0.2)"; 
+        ctx.fill();
+      }
+    }
+
+    class Spark {
+      start: Particle;
+      end: Particle;
+      progress: number;
+      speed: number;
+
+      constructor(start: Particle, end: Particle) {
+        this.start = start;
+        this.end = end;
+        this.progress = 0;
+        this.speed = Math.random() * 0.01 + 0.005; // Spark travel speed
+      }
+
+      update() {
+        this.progress += this.speed;
+        return this.progress >= 1; // Returns true when spark reaches destination
+      }
+
+      draw() {
+        if (!ctx) return;
+        // Calculate current position along the line
+        const x = this.start.x + (this.end.x - this.start.x) * this.progress;
+        const y = this.start.y + (this.end.y - this.start.y) * this.progress;
+
+        // Draw spark glow (cyan)
+        ctx.beginPath();
+        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(6, 182, 212, 0.6)";
+        ctx.fill();
+
+        // Draw spark core (white/bright cyan)
+        ctx.beginPath();
+        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
         ctx.fill();
       }
     }
@@ -59,7 +102,6 @@ export default function TechGridBackground() {
       particles.push(new Particle());
     }
 
-    // Handle mouse movement for interactive grid
     const handleMouseMove = (e: MouseEvent) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
@@ -70,44 +112,64 @@ export default function TechGridBackground() {
 
     function animate() {
       if (!ctx || !canvas) return;
-      
-      // Clear canvas with a very slight trail effect
       ctx.clearRect(0, 0, width, height);
 
+      // Update and draw particles & lines
       for (let i = 0; i < particles.length; i++) {
         particles[i].update();
         particles[i].draw();
 
-        // Check connections between particles
-        for (let j = i; j < particles.length; j++) {
+        for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < 100) {
+          if (distance < connectionDistance) {
+            // Draw connecting line
             ctx.beginPath();
-            const opacity = 0.15 - (distance / 100) * 0.15;
+            const opacity = 0.15 - (distance / connectionDistance) * 0.15;
             ctx.strokeStyle = `rgba(6, 182, 212, ${opacity})`;
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 0.8;
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
             ctx.stroke();
+
+            // Randomly spawn a spark along this connection
+            if (sparks.length < maxSparks && Math.random() < 0.0005) {
+              // 50% chance to go from i->j or j->i
+              if (Math.random() > 0.5) {
+                sparks.push(new Spark(particles[i], particles[j]));
+              } else {
+                sparks.push(new Spark(particles[j], particles[i]));
+              }
+            }
           }
         }
 
-        // Check connection to mouse
+        // Connection to mouse (creates an interactive feel without breaking the low-opacity requirement)
         const dxMouse = particles[i].x - mouse.x;
         const dyMouse = particles[i].y - mouse.y;
         const distanceMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
 
         if (distanceMouse < mouse.radius) {
           ctx.beginPath();
-          const opacity = 0.3 - (distanceMouse / mouse.radius) * 0.3;
-          ctx.strokeStyle = `rgba(37, 99, 235, ${opacity})`; // Deep blue for mouse connection
-          ctx.lineWidth = 1.2;
+          const opacity = 0.2 - (distanceMouse / mouse.radius) * 0.2;
+          ctx.strokeStyle = `rgba(37, 99, 235, ${opacity})`; // Electric blue interaction
+          ctx.lineWidth = 1;
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(mouse.x, mouse.y);
           ctx.stroke();
+        }
+      }
+
+      // Update and draw sparks
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const spark = sparks[i];
+        const isFinished = spark.update();
+        if (isFinished) {
+          sparks.splice(i, 1); // Remove spark when it reaches end
+        } else {
+          spark.draw();
         }
       }
 
@@ -135,7 +197,8 @@ export default function TechGridBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none -z-50 bg-[#0D0D0D]"
+      className="fixed inset-0 pointer-events-none -z-50 bg-[#060B19]" 
+      // Deep navy/black background (#060B19) as requested
     />
   );
 }
