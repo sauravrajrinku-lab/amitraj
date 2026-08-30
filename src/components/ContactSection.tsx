@@ -7,17 +7,41 @@ import { PROFILE } from "@/data/profile";
 export default function ContactSection() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [feedbackMsg, setFeedbackMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("submitting");
+    setFeedbackMsg("");
     
-    // Simulate API call
-    setTimeout(() => {
-      setStatus("success");
-      setFormData({ name: "", email: "", message: "" });
-      setTimeout(() => setStatus("idle"), 3000);
-    }, 1500);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        setStatus("success");
+        setFeedbackMsg(result.message || "Thank you! Your message has been sent.");
+        setFormData({ name: "", email: "", message: "" });
+        setTimeout(() => {
+          setStatus("idle");
+          setFeedbackMsg("");
+        }, 5000);
+      } else {
+        setStatus("error");
+        setFeedbackMsg(result.error || "Failed to send message. Please try again.");
+        setTimeout(() => setStatus("idle"), 5000);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setStatus("error");
+      setFeedbackMsg("Network error. Please try again later.");
+      setTimeout(() => setStatus("idle"), 5000);
+    }
   };
 
   return (
@@ -128,11 +152,23 @@ export default function ContactSection() {
               {status === "submitting" ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
               ) : status === "success" ? (
-                "Message Sent"
+                "Message Sent ✓"
               ) : (
                 <><Send className="w-4 h-4 mr-2" /> Send Message</>
               )}
             </button>
+
+            {feedbackMsg && (
+              <div
+                className={`p-3 rounded-lg text-xs font-medium text-center animate-fade-in ${
+                  status === "success"
+                    ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
+                    : "bg-red-500/10 border border-red-500/30 text-red-400"
+                }`}
+              >
+                {feedbackMsg}
+              </div>
+            )}
           </form>
         </div>
         
