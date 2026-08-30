@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
 import { PROFILE } from "@/data/profile";
 
 const NAV_ITEMS = [
@@ -34,9 +35,18 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 flex justify-between items-center">
-        <a href="#hero" className="flex items-center">
+        <a href="#hero" className="flex items-center space-x-2.5 group">
+          <div className="w-8 h-8 relative rounded-full overflow-hidden border border-ds-border group-hover:border-ds-accent transition-colors">
+            <Image
+              src={PROFILE.avatar}
+              alt={PROFILE.name}
+              fill
+              sizes="32px"
+              className="object-cover object-top"
+            />
+          </div>
           <span className="font-semibold text-ds-text1 tracking-tighter text-lg">
-            {PROFILE.name.split(" ")[0]}.
+            Amit<span className="text-ds-accent">.</span>
           </span>
         </a>
 

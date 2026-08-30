@@ -17,11 +17,23 @@ export default function AboutSection() {
     <section id="about" className="max-w-4xl mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <div className="md:col-span-2 card-minimal p-8 flex flex-col justify-center">
-          <h2 className="text-xl font-semibold text-ds-text1 tracking-tight mb-4">About</h2>
-          <p className="text-sm text-ds-text2 leading-relaxed">
-            {PROFILE.about.bio}
-          </p>
+        <div className="md:col-span-2 card-minimal p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+          <div className="relative w-28 h-28 sm:w-36 sm:h-36 flex-shrink-0 rounded-2xl overflow-hidden border border-ds-border/80 shadow-md group bg-ds-bg">
+            <Image
+              src={PROFILE.avatar}
+              alt={PROFILE.name}
+              fill
+              sizes="(max-width: 640px) 112px, 144px"
+              className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+          </div>
+          <div className="flex flex-col justify-center">
+            <h2 className="text-xl font-semibold text-ds-text1 tracking-tight mb-3">About Me</h2>
+            <p className="text-sm text-ds-text2 leading-relaxed">
+              {PROFILE.about.bio}
+            </p>
+          </div>
         </div>
 
         <div className="card-minimal p-8 flex flex-col justify-between">

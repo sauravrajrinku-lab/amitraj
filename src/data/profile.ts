@@ -53,6 +53,7 @@ export const PROFILE = {
   linkedin: "https://linkedin.com/in/amit-raj-b12a11200",
   github: "https://github.com",
   gateScore: "530 / 1000",
+  avatar: "/images/amit-image.jpeg",
   
   hero: {
     badge: "⚡ Electrical Engineer | Electric Mobility",
