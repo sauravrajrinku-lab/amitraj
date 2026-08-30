@@ -38,8 +38,6 @@ export const metadata: Metadata = {
   },
 };
 
-import TechGridBackground from "@/components/TechGridBackground";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,7 +48,6 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} bg-[#060B19] text-ds-text1 antialiased selection:bg-ds-accent/30 selection:text-ds-accent relative`}
       >
-        <TechGridBackground />
         <div className="relative z-0">
           {children}
         </div>
