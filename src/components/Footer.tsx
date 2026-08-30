@@ -15,7 +15,7 @@ export default function Footer() {
           © {new Date().getFullYear()} Amit Raj. All Rights Reserved.
         </div>
 
-        <div className="flex space-x-4">
+        <div className="flex items-center space-x-4">
           <a
             href={PROFILE.linkedin}
             target="_blank"
@@ -31,6 +31,13 @@ export default function Footer() {
             style={{ color: "#475569" }}
           >
             Email
+          </a>
+          <a
+            href="/admin"
+            className="text-xs hover:text-cyan-400 transition-colors opacity-60 hover:opacity-100"
+            style={{ color: "#475569" }}
+          >
+            Admin
           </a>
         </div>
       </div>
