@@ -17,7 +17,7 @@ export default function AboutSection() {
     <section id="about" className="max-w-4xl mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <div className="md:col-span-2 card-minimal p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+        <div className="md:col-span-2 glass-panel rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
           <div className="relative w-28 h-28 sm:w-36 sm:h-36 flex-shrink-0 rounded-2xl overflow-hidden border border-ds-border/80 shadow-md group bg-ds-bg">
             <Image
               src={PROFILE.avatar}
@@ -36,7 +36,7 @@ export default function AboutSection() {
           </div>
         </div>
 
-        <div className="card-minimal p-8 flex flex-col justify-between">
+        <div className="glass-panel rounded-2xl p-8 flex flex-col justify-between">
           <h2 className="text-xl font-semibold text-ds-text1 tracking-tight mb-4">By the Numbers</h2>
           <div className="space-y-4">
             {PROFILE.about.stats.map((stat, i) => (
@@ -48,7 +48,7 @@ export default function AboutSection() {
           </div>
         </div>
 
-        <div className="md:col-span-3 card-minimal p-8">
+        <div className="md:col-span-3 glass-panel rounded-2xl p-8">
           <h2 className="text-xl font-semibold text-ds-text1 tracking-tight mb-6">Quick Facts</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {PROFILE.about.chips.map((chip, i) => {

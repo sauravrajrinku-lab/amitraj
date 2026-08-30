@@ -18,25 +18,25 @@ export default function SkillsSection() {
         {PROFILE.skillGroups.map((group, idx) => {
           const IconComponent = iconMap[group.icon as keyof typeof iconMap] || Terminal;
           return (
-            <div key={idx} className="card-minimal p-8 flex flex-col">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 rounded border border-ds-border bg-ds-bg flex items-center justify-center text-ds-accent2">
-                  <IconComponent className="w-4 h-4" />
+            <div key={idx} className="glass-panel rounded-2xl p-8 flex flex-col group hover:border-cyan-500/50 transition-all duration-500">
+              <div className="flex items-center space-x-4 mb-5">
+                <div className="w-10 h-10 rounded-lg border border-ds-border/50 bg-ds-bg/50 flex items-center justify-center text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/10 transition-all duration-300">
+                  <IconComponent className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-bold tracking-tight text-ds-text1">{group.category}</h3>
+                <h3 className="text-xl font-semibold tracking-tight text-ds-text1 group-hover:text-cyan-50">{group.category}</h3>
               </div>
               
-              <p className="text-xs text-ds-text2 mb-6">
+              <p className="text-sm text-ds-text2 mb-6 leading-relaxed">
                 {group.description}
               </p>
 
-              <div className="flex flex-wrap gap-2 mt-auto">
+              <div className="flex flex-wrap gap-2.5 mt-auto">
                 {group.skills.map((skill, sIdx) => (
                   <div 
                     key={sIdx} 
-                    className="flex items-center px-3 py-1.5 skill-badge rounded-md"
+                    className="flex items-center px-3 py-1.5 bg-ds-surface/60 border border-ds-border hover:border-cyan-500/30 rounded-md transition-colors"
                   >
-                    <span className="text-sm font-medium">{skill.name}</span>
+                    <span className="text-sm font-medium text-ds-text1/90">{skill.name}</span>
                   </div>
                 ))}
               </div>

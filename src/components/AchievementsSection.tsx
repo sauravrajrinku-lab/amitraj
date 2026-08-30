@@ -12,31 +12,31 @@ export default function AchievementsSection() {
         {PROFILE.achievements.map((ach) => (
           <div 
             key={ach.id} 
-            className={`card-minimal p-6 flex flex-col justify-between ${ach.highlight ? 'border-ds-accent' : 'border-ds-border'}`}
+            className={`glass-panel rounded-2xl p-8 flex flex-col justify-between group transition-all duration-500 hover:-translate-y-1 ${ach.highlight ? 'border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.15)]' : 'border-ds-border hover:border-cyan-500/30'}`}
           >
             <div>
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h3 className="text-sm font-bold tracking-tight text-ds-text1 uppercase">{ach.exam}</h3>
-                  <p className="text-[10px] font-medium text-ds-text2 mt-1 tracking-widest uppercase">{ach.discipline}</p>
+                  <h3 className="text-sm font-bold tracking-tight text-cyan-400 uppercase">{ach.exam}</h3>
+                  <p className="text-[10px] font-semibold text-ds-text2 mt-1 tracking-widest uppercase">{ach.discipline}</p>
                 </div>
-                <div className="px-2 py-1 bg-ds-bg border border-ds-border rounded text-[10px] font-medium text-ds-text1">
+                <div className="px-2.5 py-1 bg-ds-surface/60 border border-ds-border rounded-md text-[10px] font-semibold text-ds-text1 shadow-sm">
                   {ach.year}
                 </div>
               </div>
               
-              <div className="my-6 flex items-baseline">
-                <span className="text-4xl font-bold tracking-tighter text-ds-text1">{ach.score}</span>
+              <div className="my-8 flex items-baseline">
+                <span className="text-5xl font-bold tracking-tighter text-ds-text1 group-hover:text-cyan-50 transition-colors">{ach.score}</span>
                 {ach.maxScore !== "1000" && ach.score !== "Qualified" && (
-                  <span className="text-sm text-ds-text2 ml-1">/ {ach.maxScore}</span>
+                  <span className="text-sm font-medium text-ds-text2 ml-2">/ {ach.maxScore}</span>
                 )}
                 {ach.score === "530" && (
-                  <span className="text-sm text-ds-text2 ml-1">/ 1000</span>
+                  <span className="text-sm font-medium text-ds-text2 ml-2">/ 1000</span>
                 )}
               </div>
             </div>
 
-            <p className="text-xs text-ds-text2 leading-relaxed">
+            <p className="text-sm text-ds-text2 leading-relaxed">
               {ach.details}
             </p>
           </div>
