@@ -10,15 +10,30 @@ const getSupabaseAdmin = () => {
   return createClient(supabaseUrl, supabaseKey);
 };
 
-// GET: Fetch all messages
+// Verify if admin user exists in Supabase
+async function verifyAdmin(email: string | null) {
+  if (!email) return false;
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase
+    .from("admin_users")
+    .select("id, email, role")
+    .eq("email", email.trim().toLowerCase())
+    .single();
+  return !!data;
+}
+
+// GET: Fetch all messages for authenticated Supabase admin
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const pass = searchParams.get("key");
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const adminEmail = searchParams.get("adminEmail");
 
-    if (pass !== adminPassword) {
-      return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
+    const isValid = await verifyAdmin(adminEmail);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: "Unauthorized. Admin verification failed in Supabase." },
+        { status: 401 }
+      );
     }
 
     const supabase = getSupabaseAdmin();
@@ -39,16 +54,19 @@ export async function GET(request: Request) {
   }
 }
 
-// DELETE: Delete a message by ID
+// DELETE: Delete a message by ID for authenticated Supabase admin
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const pass = searchParams.get("key");
+    const adminEmail = searchParams.get("adminEmail");
     const id = searchParams.get("id");
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
 
-    if (pass !== adminPassword) {
-      return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
+    const isValid = await verifyAdmin(adminEmail);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: "Unauthorized. Admin verification failed in Supabase." },
+        { status: 401 }
+      );
     }
 
     if (!id) {

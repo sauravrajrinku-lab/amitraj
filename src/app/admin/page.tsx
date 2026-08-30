@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Lock,
+  ShieldCheck,
   Mail,
   Phone,
   Calendar,
@@ -17,6 +17,8 @@ import {
   AlertCircle,
   LogOut,
   ExternalLink,
+  User,
+  Lock,
 } from "lucide-react";
 
 interface Message {
@@ -28,9 +30,17 @@ interface Message {
   created_at: string;
 }
 
+interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export default function AdminPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [loginError, setLoginError] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -44,10 +54,15 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    const savedKey = localStorage.getItem("amit_admin_key");
-    if (savedKey) {
-      setPassword(savedKey);
-      fetchMessages(savedKey);
+    const savedUser = localStorage.getItem("supabase_admin_user");
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        setCurrentUser(parsed);
+        fetchMessages(parsed.email);
+      } catch {
+        localStorage.removeItem("supabase_admin_user");
+      }
     }
   }, []);
 
@@ -55,53 +70,72 @@ export default function AdminPage() {
     e.preventDefault();
     setLoginError("");
     setLoading(true);
-    await fetchMessages(password);
-    setLoading(false);
-  };
 
-  const fetchMessages = async (keyToUse: string) => {
     try {
-      setLoading(true);
-      const res = await fetch(`/api/admin/messages?key=${encodeURIComponent(keyToUse)}`);
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setIsAuthenticated(true);
-        setMessages(data.messages || []);
-        localStorage.setItem("amit_admin_key", keyToUse);
+        setCurrentUser(data.user);
+        localStorage.setItem("supabase_admin_user", JSON.stringify(data.user));
+        await fetchMessages(data.user.email);
+        showToast(`Welcome back, ${data.user.name}!`, "success");
       } else {
-        setIsAuthenticated(false);
-        setLoginError(data.error || "Invalid Admin Password");
+        setLoginError(data.error || "Authentication failed.");
       }
     } catch (err: any) {
-      setIsAuthenticated(false);
-      setLoginError("Failed to connect to server.");
+      setLoginError("Failed to connect to Supabase authentication service.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async (adminEmail: string) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/admin/messages?adminEmail=${encodeURIComponent(adminEmail)}`);
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setMessages(data.messages || []);
+      } else {
+        showToast(data.error || "Failed to load messages from Supabase", "error");
+      }
+    } catch (err) {
+      showToast("Error loading messages.", "error");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("amit_admin_key");
-    setIsAuthenticated(false);
+    localStorage.removeItem("supabase_admin_user");
+    setCurrentUser(null);
+    setEmail("");
     setPassword("");
     setMessages([]);
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this message?")) return;
+    if (!window.confirm("Are you sure you want to permanently delete this message from Supabase?")) return;
+    if (!currentUser) return;
 
     setDeletingId(id);
     try {
       const res = await fetch(
-        `/api/admin/messages?key=${encodeURIComponent(password)}&id=${encodeURIComponent(id)}`,
+        `/api/admin/messages?adminEmail=${encodeURIComponent(currentUser.email)}&id=${encodeURIComponent(id)}`,
         { method: "DELETE" }
       );
       const data = await res.json();
 
       if (res.ok && data.success) {
         setMessages((prev) => prev.filter((m) => m.id !== id));
-        showToast("Message deleted successfully.", "success");
+        showToast("Message deleted permanently from Supabase.", "success");
       } else {
         showToast(data.error || "Failed to delete message.", "error");
       }
@@ -149,38 +183,60 @@ export default function AdminPage() {
     );
   });
 
-  // Login Screen
-  if (!isAuthenticated) {
+  // Supabase Auth Login Screen
+  if (!currentUser) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center p-6 text-slate-100">
         <div className="w-full max-w-md bg-[#141820] border border-[#1E2D40] rounded-2xl p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-emerald-400" />
           
           <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-blue-600/10 border border-blue-500/30 rounded-2xl mx-auto flex items-center justify-center text-cyan-400 mb-4 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-              <Lock className="w-6 h-6" />
+            <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 mb-4 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
+              <ShieldCheck className="w-7 h-7" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Amit Raj — Admin Panel</h1>
-            <p className="text-xs text-slate-400 mt-2">Enter password to view and manage received inquiries</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Supabase Admin Login</h1>
+            <p className="text-xs text-slate-400 mt-2">
+              Authenticate with your credentials stored in Supabase <code className="text-cyan-400 font-mono">admin_users</code> table
+            </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                Admin Password / PIN
+                Admin Email
               </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password (default: admin123)"
-                className="w-full px-4 py-3 bg-[#0D0D0D] border border-[#1E2D40] text-white rounded-xl text-sm focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all placeholder:text-slate-600"
-              />
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="amit.raj.ee@gmail.com"
+                  className="w-full pl-10 pr-4 py-3 bg-[#0D0D0D] border border-[#1E2D40] text-white rounded-xl text-sm focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all placeholder:text-slate-600"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your admin password"
+                  className="w-full pl-10 pr-4 py-3 bg-[#0D0D0D] border border-[#1E2D40] text-white rounded-xl text-sm focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all placeholder:text-slate-600"
+                />
+              </div>
             </div>
 
             {loginError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 flex items-center gap-2">
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 flex items-center gap-2 animate-fade-in">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{loginError}</span>
               </div>
@@ -189,12 +245,12 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-medium text-sm rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
-                "Unlock Dashboard"
+                "Authenticate with Supabase"
               )}
             </button>
           </form>
@@ -209,7 +265,7 @@ export default function AdminPage() {
     );
   }
 
-  // Authenticated Admin Dashboard
+  // Authenticated Supabase Admin Dashboard
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-slate-100 p-4 sm:p-8">
       {/* Toast Notification */}
@@ -235,14 +291,25 @@ export default function AdminPage() {
                 <ArrowLeft className="w-3.5 h-3.5" /> amitraj.live
               </Link>
               <span className="text-slate-600">•</span>
-              <span className="text-xs text-slate-400 font-mono">Admin Portal</span>
+              <span className="text-xs text-emerald-400 font-mono flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3" /> Supabase Authenticated
+              </span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-white mt-1">Inquiries & Contact Messages</h1>
+            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+              <User className="w-3 h-3 text-cyan-400" />
+              <span>
+                Logged in as <strong className="text-slate-200">{currentUser.name}</strong> ({currentUser.email})
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 text-[10px] font-mono uppercase font-semibold">
+                {currentUser.role}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => fetchMessages(password)}
+              onClick={() => fetchMessages(currentUser.email)}
               disabled={loading}
               className="px-3.5 py-2 bg-[#0D0D0D] hover:bg-[#1A2230] border border-[#1E2D40] text-slate-300 hover:text-white rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all"
             >
@@ -405,7 +472,7 @@ export default function AdminPage() {
                         onClick={() => handleDelete(msg.id)}
                         disabled={deletingId === msg.id}
                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-500/30 transition-all"
-                        title="Delete Message"
+                        title="Delete Message permanently from Supabase"
                       >
                         {deletingId === msg.id ? (
                           <RefreshCw className="w-4 h-4 animate-spin text-red-400" />
